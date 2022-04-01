@@ -23,28 +23,28 @@ CREATE TABLE IF NOT EXISTS Catalog_
 	FOREIGN KEY (pid) REFERENCES Parts(pid)
 );
 
--- INSERT INTO Suppliers VALUES 
--- (1, 'Yosemithe Sham', 'Devil''s canyon, AZ'),
--- (2, 'Waley E. Coyote', 'RR Asylum, NV'),
--- (3, 'Elmer Fudd', 'Carrot Patch, MN');
+INSERT INTO Suppliers VALUES 
+(1, 'Yosemithe Sham', 'Devil''s canyon, AZ'),
+(2, 'Waley E. Coyote', 'RR Asylum, NV'),
+(3, 'Elmer Fudd', 'Carrot Patch, MN');
 
--- INSERT INTO Parts VALUES
--- (1, 'Red1', 'Red'),
--- (2, 'Red2', 'Red'),
--- (3, 'Green1', 'Green'),
--- (4, 'Blue1', 'Blue'),
--- (5, 'Red3', 'Red');
+INSERT INTO Parts VALUES
+(1, 'Red1', 'Red'),
+(2, 'Red2', 'Red'),
+(3, 'Green1', 'Green'),
+(4, 'Blue1', 'Blue'),
+(5, 'Red3', 'Red');
 
--- INSERT INTO Catalog_ VALUES
--- (1, 1, 10.),
--- (1, 2, 20.),
--- (1, 3, 30.),
--- (1, 4, 40.),
--- (1, 5, 50.),
--- (2, 1, 9.),
--- (2, 3, 34.),
--- (2, 5, 48.);
--- (3, 1, 53.);
+INSERT INTO Catalog_ VALUES
+(1, 1, 10.),
+(1, 2, 20.),
+(1, 3, 30.),
+(1, 4, 40.),
+(1, 5, 50.),
+(2, 1, 9.),
+(2, 3, 34.),
+(2, 5, 48.);
+(3, 1, 53.);
 
 -- Find the names of suppliers who supply some red part
 SELECT DISTINCT sname
