@@ -10,7 +10,8 @@ AS $body$
 	RETURN QUERY 
 		SELECT address.address_id, address.address
 		FROM address
-		WHERE address.address LIKE '%11%' AND address.city_id BETWEEN 400 AND 600;
+		WHERE address.address LIKE '%11%' AND address.city_id BETWEEN 400 AND 600
+		ORDER BY address.address_id DESC;
 	END;
 $body$
 LANGUAGE plpgsql;

@@ -33,17 +33,19 @@ def update_coords(addresses: list):
                                 database='dvdrental',
                                 user='postgres',
                                 password='proof')
-        # conn.autocommit = True
+        conn.autocommit = True
         cur = conn.cursor()
         for address in addresses:
             location = geolocator.geocode(address[1])
             if location is not None:
                 cur.execute('UPDATE address SET longitude=%s, latitude=%s WHERE address_id=%s;', (location.longitude, location.latitude, address[0]))
-                conn.commit()
+                # conn.commit()
                 print(location.latitude, location.longitude)
             else:
-                cur.execute('UPDATE address SET longitude=%s, latitude=%s;', (0.0, 0.0))
-                print((0, 0)) 
+                cur.execute('UPDATE address SET longitude=%s, latitude=%s WHERE address_id=%s;', (0.0, 0.0, address[0]))
+                print((0, 0))
+            # conn.commit()
+        cur.close()
     except (Exception, psycopg2.DatabaseError) as error:
         print(error)
     finally:
