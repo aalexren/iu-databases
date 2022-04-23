@@ -196,3 +196,340 @@ ROLLBACK
 lab11=*# END;
 COMMIT
 ```
+
+# Exercise 2
+
+Difference between these levels of isolation: https://stackoverflow.com/a/14394210/7502538
+
+## Part 1
+
+### SET ISOLATION LEVEL READ COMMITTED
+
+
+#### Terminal 1:
+```
+lab11=# BEGIN;
+BEGIN
+lab11=*# SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
+SET
+lab11=*# SELECT * FROM users;
+ username |    fullname     | balance | group_id
+----------+-----------------+---------+----------
+ jones    | Alice Jones     |      82 |        1
+ bitdiddl | Ben Bitdiddle   |      65 |        1
+ mike     | Michael Dole    |      73 |        2
+ alyssa   | Alyssa P.Hacker |      79 |        3
+ bbrown   | Bob Brown       |     100 |        3
+(5 rows)
+
+lab11=*# SELECT * FROM users;
+ username |    fullname     | balance | group_id
+----------+-----------------+---------+----------
+ jones    | Alice Jones     |      82 |        1
+ bitdiddl | Ben Bitdiddle   |      65 |        1
+ mike     | Michael Dole    |      73 |        2
+ alyssa   | Alyssa P.Hacker |      79 |        3
+ bbrown   | Bob Brown       |     100 |        3
+(5 rows)
+
+lab11=*# SELECT * FROM users;
+ username |    fullname     | balance | group_id
+----------+-----------------+---------+----------
+ bitdiddl | Ben Bitdiddle   |      65 |        1
+ mike     | Michael Dole    |      73 |        2
+ alyssa   | Alyssa P.Hacker |      79 |        3
+ bbrown   | Bob Brown       |     100 |        3
+ ajones   | Alice Jones     |      82 |        1
+(5 rows)
+
+lab11=*# UPDATE users SET balance = balance + 10 WHERE username='ajones';
+UPDATE 1
+lab11=*# COMMIT;
+COMMIT
+lab11=# SELECT * FROM users;
+ username |    fullname     | balance | group_id
+----------+-----------------+---------+----------
+ bitdiddl | Ben Bitdiddle   |      65 |        1
+ mike     | Michael Dole    |      73 |        2
+ alyssa   | Alyssa P.Hacker |      79 |        3
+ bbrown   | Bob Brown       |     100 |        3
+ ajones   | Alice Jones     |      92 |        1
+(5 rows)
+
+lab11=# SELECT * FROM users;
+ username |    fullname     | balance | group_id
+----------+-----------------+---------+----------
+ bitdiddl | Ben Bitdiddle   |      65 |        1
+ mike     | Michael Dole    |      73 |        2
+ alyssa   | Alyssa P.Hacker |      79 |        3
+ bbrown   | Bob Brown       |     100 |        3
+ ajones   | Alice Jones     |      92 |        1
+(5 rows)
+
+lab11=#
+```
+
+#### Terminal 2:
+
+```
+lab11=# BEGIN;
+BEGIN
+lab11=*# SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
+SET
+lab11=*# UPDATE users SET username='ajones' WHERE username='jones';
+UPDATE 1
+lab11=*# SELECT * FROM users;
+ username |    fullname     | balance | group_id
+----------+-----------------+---------+----------
+ bitdiddl | Ben Bitdiddle   |      65 |        1
+ mike     | Michael Dole    |      73 |        2
+ alyssa   | Alyssa P.Hacker |      79 |        3
+ bbrown   | Bob Brown       |     100 |        3
+ ajones   | Alice Jones     |      82 |        1
+(5 rows)
+
+lab11=*# COMMIT;
+COMMIT
+lab11=# SELECT * FROM users;
+ username |    fullname     | balance | group_id
+----------+-----------------+---------+----------
+ bitdiddl | Ben Bitdiddle   |      65 |        1
+ mike     | Michael Dole    |      73 |        2
+ alyssa   | Alyssa P.Hacker |      79 |        3
+ bbrown   | Bob Brown       |     100 |        3
+ ajones   | Alice Jones     |      82 |        1
+(5 rows)
+
+lab11=# BEGIN;
+BEGIN
+lab11=*# SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
+SET
+lab11=*# UPDATE users SET balance = balance + 15 WHERE username = 'ajones';
+UPDATE 1
+lab11=*# SELECT * FROM users;
+ username |    fullname     | balance | group_id
+----------+-----------------+---------+----------
+ bitdiddl | Ben Bitdiddle   |      65 |        1
+ mike     | Michael Dole    |      73 |        2
+ alyssa   | Alyssa P.Hacker |      79 |        3
+ bbrown   | Bob Brown       |     100 |        3
+ ajones   | Alice Jones     |     107 |        1
+(5 rows)
+
+lab11=*# ROLLBACK;
+ROLLBACK
+lab11=#
+```
+
+**Steps:** 
+1.  Simply display information about the users;
+2.  Update Alice's username to `ajones`
+3. No changes in terminal 1, since we didn't commit anything in the terminal 2.
+4. Changed username for Alice.
+5. Commit changes.
+6. New transaction.
+7. Update balance for the Alice with already updated username `ajones`
+8. Update balance for the Alice. Get stucked, cause we didn't finish transaction in the terminal 1, waits for the commit.
+9. Commit changes. In terminal 2 the operation has been done successfully. 
+10. Rollback, means we updated Alice's balance only for 10.
+
+### SET TRANSACTION ISOLATION LEVEL REPEATABLE READ
+
+#### Terminal 1:
+```
+lab11=# BEGIN;
+BEGIN
+lab11=*# SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+SET
+lab11=*# SELECT * FROM users;
+ username |    fullname     | balance | group_id
+----------+-----------------+---------+----------
+ jones    | Alice Jones     |      82 |        1
+ bitdiddl | Ben Bitdiddle   |      65 |        1
+ mike     | Michael Dole    |      73 |        2
+ alyssa   | Alyssa P.Hacker |      79 |        3
+ bbrown   | Bob Brown       |     100 |        3
+(5 rows)
+
+lab11=*# SELECT * FROM users;
+ username |    fullname     | balance | group_id
+----------+-----------------+---------+----------
+ jones    | Alice Jones     |      82 |        1
+ bitdiddl | Ben Bitdiddle   |      65 |        1
+ mike     | Michael Dole    |      73 |        2
+ alyssa   | Alyssa P.Hacker |      79 |        3
+ bbrown   | Bob Brown       |     100 |        3
+(5 rows)
+
+lab11=*# SELECT * FROM users;
+ username |    fullname     | balance | group_id
+----------+-----------------+---------+----------
+ jones    | Alice Jones     |      82 |        1
+ bitdiddl | Ben Bitdiddle   |      65 |        1
+ mike     | Michael Dole    |      73 |        2
+ alyssa   | Alyssa P.Hacker |      79 |        3
+ bbrown   | Bob Brown       |     100 |        3
+(5 rows)
+
+lab11=*# UPDATE users SET balance = balance + 10 WHERE username='ajones';
+UPDATE 0
+lab11=*# UPDATE users SET balance = balance + 10 WHERE username='jones';
+ERROR:  could not serialize access due to concurrent update
+lab11=!# END;
+ROLLBACK
+lab11=# SELECT * FROM users;
+ username |    fullname     | balance | group_id
+----------+-----------------+---------+----------
+ bitdiddl | Ben Bitdiddle   |      65 |        1
+ mike     | Michael Dole    |      73 |        2
+ alyssa   | Alyssa P.Hacker |      79 |        3
+ bbrown   | Bob Brown       |     100 |        3
+ ajones   | Alice Jones     |      82 |        1
+(5 rows)
+
+lab11=#
+```
+
+#### Terminal 2:
+```
+lab11=# BEGIN;
+BEGIN
+lab11=*# SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+SET
+lab11=*# UPDATE users SET balance = balance + 20 WHERE username='ajones';
+UPDATE 1
+lab11=*# ROLLBACK;
+ROLLBACK
+lab11=# SELECT * FROM users;
+ username |    fullname     | balance | group_id
+----------+-----------------+---------+----------
+ bitdiddl | Ben Bitdiddle   |      65 |        1
+ mike     | Michael Dole    |      73 |        2
+ alyssa   | Alyssa P.Hacker |      79 |        3
+ bbrown   | Bob Brown       |     100 |        3
+ ajones   | Alice Jones     |      82 |        1
+(5 rows)
+
+lab11=#
+```
+
+## Part 2
+
+### SET TRANSACTION ISOLATION LEVEL READ COMMITTED
+
+#### Terminal 1
+```
+lab11=# BEGIN;
+BEGIN
+lab11=*# SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
+SET
+lab11=*# SELECT * FROM users WHERE group_id = 2;
+ username |   fullname   | balance | group_id
+----------+--------------+---------+----------
+ mike     | Michael Dole |      73 |        2
+(1 row)
+
+lab11=*# SELECT * FROM users WHERE group_id = 2;
+ username |   fullname   | balance | group_id
+----------+--------------+---------+----------
+ mike     | Michael Dole |      73 |        2
+(1 row)
+
+lab11=*# SELECT * FROM users WHERE group_id = 2;
+ username |   fullname   | balance | group_id
+----------+--------------+---------+----------
+ mike     | Michael Dole |      73 |        2
+ bbrown   | Bob Brown    |     100 |        2
+(2 rows)
+
+lab11=*# UPDATE users SET balance = balance + 15 WHERE group_id = 2;
+UPDATE 2
+lab11=*# COMMIT;
+COMMIT
+lab11=# SELECT * FROM users WHERE group_id = 2;
+ username |   fullname   | balance | group_id
+----------+--------------+---------+----------
+ mike     | Michael Dole |      88 |        2
+ bbrown   | Bob Brown    |     115 |        2
+(2 rows)
+
+lab11=#
+```
+
+#### Terminal 2
+```
+lab11=# BEGIN;
+BEGIN
+lab11=*# SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
+SET
+lab11=*# UPDATE users SET group_id = 2 WHERE username='bbrown';
+UPDATE 1
+lab11=*# COMMIT;
+COMMIT
+lab11=# SELECT * FROM users;
+ username |    fullname     | balance | group_id
+----------+-----------------+---------+----------
+ jones    | Alice Jones     |      82 |        1
+ bitdiddl | Ben Bitdiddle   |      65 |        1
+ alyssa   | Alyssa P.Hacker |      79 |        3
+ mike     | Michael Dole    |      88 |        2
+ bbrown   | Bob Brown       |     115 |        2
+(5 rows)
+
+lab11=#
+```
+
+The main idea is that is this isolation level only the committed data could be read. E.g. you can start transaction and change data during the another transaction and if you committed it another transaction will see it.
+
+### SET TRANSACTION ISOLATION LEVEL REPEATABLE READ
+
+#### Terminal 1:
+```
+lab11=# BEGIN;
+BEGIN
+lab11=*# SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+SET
+lab11=*# SELECT * FROM users WHERE group_id = 2;
+ username |   fullname   | balance | group_id
+----------+--------------+---------+----------
+ mike     | Michael Dole |      73 |        2
+(1 row)
+
+lab11=*# SELECT * FROM users WHERE group_id = 2;
+ username |   fullname   | balance | group_id
+----------+--------------+---------+----------
+ mike     | Michael Dole |      73 |        2
+(1 row)
+
+lab11=*# SELECT * FROM users WHERE group_id = 2;
+ username |   fullname   | balance | group_id
+----------+--------------+---------+----------
+ mike     | Michael Dole |      73 |        2
+(1 row)
+
+lab11=*# UPDATE users SET balance = balance + 15 WHERE group_id = 2;
+UPDATE 1
+lab11=*# COMMIT;
+COMMIT
+lab11=# SELECT * FROM users WHERE group_id = 2;
+ username |   fullname   | balance | group_id
+----------+--------------+---------+----------
+ bbrown   | Bob Brown    |     100 |        2
+ mike     | Michael Dole |      88 |        2
+(2 rows)
+
+lab11=#
+```
+
+#### Terminal 2
+```
+lab11=# BEGIN;
+BEGIN
+lab11=*# SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+SET
+lab11=*# UPDATE users SET group_id = 2 WHERE username = 'bbrown';
+UPDATE 1
+lab11=*# COMMIT;
+COMMIT
+lab11=#
+```
