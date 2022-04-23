@@ -134,3 +134,65 @@ lab11=*# SELECT * FROM account;
 lab11=*# END;
 COMMIT
 ```
+
+## Part 3
+Add table for transactions and a slightly change the code of functions.
+```
+lab11=# BEGIN;
+BEGIN
+lab11=*# SELECT * FROM account;
+ uid |   name    | credit | currency | bankname
+-----+-----------+--------+----------+----------
+   1 | Account 1 |   1000 | RUB      | Sberbank
+   3 | Account 3 |   1000 | RUB      | Sberbank
+   2 | Account 2 |   1000 | RUB      | Tinkoff
+   4 | Account 4 |      0 | RUB      |
+(4 rows)
+
+lab11=*# SELECT * FROM ledger;
+ uid | from_uid | to_uid | fee | amount | transaction_date
+-----+----------+--------+-----+--------+------------------
+(0 rows)
+
+lab11=*# SAVEPOINT T;
+SAVEPOINT
+lab11=*# SELECT * FROM transfer_money_fee(1, 3, 500);
+ uid |   name    | credit | currency | bankname
+-----+-----------+--------+----------+----------
+   2 | Account 2 |   1000 | RUB      | Tinkoff
+   4 | Account 4 |      0 | RUB      |
+   3 | Account 3 |   1500 | RUB      | Sberbank
+   1 | Account 1 |    500 | RUB      | Sberbank
+(4 rows)
+
+lab11=*# SELECT * FROM transfer_money_fee(2, 1, 700);
+ uid |   name    | credit | currency | bankname
+-----+-----------+--------+----------+----------
+   3 | Account 3 |   1500 | RUB      | Sberbank
+   2 | Account 2 |    300 | RUB      | Tinkoff
+   1 | Account 1 |   1170 | RUB      | Sberbank
+   4 | Account 4 |     30 | RUB      |
+(4 rows)
+
+lab11=*# SELECT * FROM transfer_money_fee(2, 3, 100);
+ uid |   name    | credit | currency | bankname
+-----+-----------+--------+----------+----------
+   1 | Account 1 |   1170 | RUB      | Sberbank
+   2 | Account 2 |    200 | RUB      | Tinkoff
+   3 | Account 3 |   1570 | RUB      | Sberbank
+   4 | Account 4 |     60 | RUB      |
+(4 rows)
+
+lab11=*# SELECT * FROM ledger;
+ uid | from_uid | to_uid | fee | amount | transaction_date
+-----+----------+--------+-----+--------+------------------
+   1 |        1 |      3 |   0 |    500 | 2022-04-23
+   2 |        2 |      1 |  30 |    700 | 2022-04-23
+   3 |        2 |      3 |  30 |    100 | 2022-04-23
+(3 rows)
+
+lab11=*# ROLLBACK TO T;
+ROLLBACK
+lab11=*# END;
+COMMIT
+```

@@ -2,19 +2,29 @@ DROP FUNCTION IF EXISTS transfer_money;
 CREATE OR REPLACE FUNCTION transfer_money(from_uid INT, to_uid INT, amount DECIMAL)
 RETURNS TABLE (uid INT, name VARCHAR, credit DECIMAL, currency VARCHAR)
 AS $$
-	UPDATE account SET credit = credit + amount WHERE uid = to_uid;
-	UPDATE account SET credit = credit - amount WHERE uid = from_uid;
+#variable_conflict use_column
+	BEGIN
+		UPDATE account SET credit = credit + amount WHERE uid = to_uid;
+		UPDATE account SET credit = credit - amount WHERE uid = from_uid;
 
-	SELECT uid, name, credit, currency FROM account;
-$$ LANGUAGE SQL;
+		INSERT INTO ledger (from_uid, to_uid, fee, amount, transaction_date) 
+		VALUES (from_uid, to_uid, 0, amount, NOW());
+	
+	RETURN QUERY
+		SELECT uid, name, credit, currency FROM account;
+	
+	END
+$$ LANGUAGE plpgSQL;
 
-DROP TABLE IF EXISTS account;
+DROP TABLE IF EXISTS account CASCADE;
 CREATE TABLE IF NOT EXISTS account
 (
-	uid INT NOT NULL,
+	uid INT,
 	name VARCHAR,
 	credit DECIMAL,
-	currency VARCHAR
+	currency VARCHAR,
+	
+	PRIMARY KEY (uid)
 );
 
 INSERT INTO account VALUES
@@ -41,12 +51,19 @@ $$
 		UPDATE account SET credit = credit + amount WHERE uid = to_uid;
 		UPDATE account SET credit = credit - amount WHERE uid = from_uid;
 
+-- 		transfer_money(from_uid, to_uid, amount);
+
 		IF EXISTS (SELECT 1 FROM account AS A1, account AS A2 
 				   WHERE A1.uid = from_uid AND A2.uid = to_uid 
 				   AND A1.bankname != A2.bankname)
 		THEN
 			UPDATE account SET credit = credit - 30 WHERE uid = to_uid;
 			UPDATE account SET credit = credit + 30 WHERE uid = 4;
+			INSERT INTO ledger (from_uid, to_uid, fee, amount, transaction_date) 
+			VALUES (from_uid, to_uid, 30, amount, NOW());
+		ELSE
+			INSERT INTO ledger (from_uid, to_uid, fee, amount, transaction_date) 
+			VALUES (from_uid, to_uid, 0, amount, NOW());
 		END IF;
 	
 		RETURN QUERY 
@@ -55,4 +72,25 @@ $$
 			
 $$ LANGUAGE plpgSQL;
 
-SELECT * FROM account;
+
+DROP TABLE IF EXISTS ledger;
+CREATE TABLE IF NOT EXISTS ledger
+(
+	uid SERIAL,
+	from_uid INT NOT NULL,
+	to_uid INT NOT NULL,
+	fee DECIMAL NOT NULL,
+	amount DECIMAL NOT NULL,
+	transaction_date DATE NOT NULL,
+	
+	PRIMARY KEY (uid),
+	FOREIGN KEY (from_uid) REFERENCES account(uid),
+	FOREIGN KEY (to_uid) REFERENCES account(uid)
+);
+
+-- SELECT transfer_money(1, 3, 700);
+
+-- SELECT transfer_money_fee(1, 2, 700);
+
+-- SELECT * FROM ledger;
+
