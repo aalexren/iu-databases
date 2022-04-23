@@ -1,0 +1,54 @@
+Seq Scan on film f  (cost=0.00..103405.04 rows=500 width=51) (actual time=1.175..315.405 rows=1000 loops=1)
+  Filter: (NOT (SubPlan 2))
+  SubPlan 1
+    ->  Aggregate  (cost=109.52..109.53 rows=1 width=32) (actual time=0.089..0.089 rows=1 loops=1000)
+          ->  Nested Loop  (cost=8.07..109.48 rows=16 width=6) (actual time=0.016..0.084 rows=15 loops=1000)
+                ->  Nested Loop  (cost=8.07..108.20 rows=18 width=4) (actual time=0.013..0.047 rows=16 loops=1000)
+                      ->  Bitmap Heap Scan on inventory i1  (cost=4.04..17.39 rows=5 width=4) (actual time=0.003..0.004 rows=5 loops=1000)
+                            Recheck Cond: (film_id = f.film_id)
+                            Heap Blocks: exact=978
+                            ->  Bitmap Index Scan on idx_inventory_film_id  (cost=0.00..4.04 rows=5 width=0) (actual time=0.002..0.002 rows=5 loops=1000)
+                                  Index Cond: (film_id = f.film_id)
+                      ->  Bitmap Heap Scan on rental r1  (cost=4.03..18.12 rows=4 width=8) (actual time=0.004..0.006 rows=4 loops=4581)
+                            Recheck Cond: (inventory_id = i1.inventory_id)
+                            Heap Blocks: exact=16036
+                            ->  Bitmap Index Scan on idx_rental_inventory_id  (cost=0.00..4.03 rows=4 width=0) (actual time=0.002..0.002 rows=4 loops=4581)
+                                  Index Cond: (inventory_id = i1.inventory_id)
+                ->  Index Scan using idx_payment_rental_id on payment p  (cost=0.00..0.06 rows=1 width=10) (actual time=0.002..0.002 rows=1 loops=16044)
+                      Index Cond: (rental_id = r1.rental_id)
+  SubPlan 2
+    ->  GroupAggregate  (cost=48.55..48.58 rows=1 width=14) (actual time=0.223..0.223 rows=0 loops=1000)
+          Group Key: c.first_name
+          Filter: (count(*) > 2)
+          Rows Removed by Filter: 0
+          ->  Sort  (cost=48.55..48.56 rows=1 width=6) (actual time=0.222..0.222 rows=0 loops=1000)
+                Sort Key: c.first_name
+                Sort Method: quicksort  Memory: 25kB
+                ->  Nested Loop  (cost=22.16..48.54 rows=1 width=6) (actual time=0.218..0.220 rows=0 loops=1000)
+                      ->  Hash Join  (cost=22.16..40.52 rows=1 width=10) (actual time=0.210..0.218 rows=0 loops=1000)
+                            Hash Cond: (r2.inventory_id = i1_1.inventory_id)
+                            ->  Nested Loop  (cost=4.71..22.71 rows=135 width=12) (actual time=0.057..0.207 rows=82 loops=959)
+                                  ->  Nested Loop  (cost=4.71..11.78 rows=5 width=12) (actual time=0.053..0.138 rows=3 loops=959)
+                                        ->  Hash Join  (cost=4.43..8.97 rows=5 width=8) (actual time=0.020..0.060 rows=5 loops=959)
+                                              Hash Cond: (a.actor_id = fa.actor_id)
+                                              ->  Seq Scan on actor a  (cost=0.00..4.00 rows=200 width=10) (actual time=0.003..0.024 rows=200 loops=956)
+                                              ->  Hash  (cost=4.37..4.37 rows=5 width=4) (actual time=0.006..0.006 rows=5 loops=959)
+                                                    Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                                                    ->  Index Only Scan using idx_film_actor_film_id_actor_id on film_actor fa  (cost=0.28..4.37 rows=5 width=4) (actual time=0.004..0.005 rows=5 loops=959)
+                                                          Index Cond: (film_id = f.film_id)
+                                                          Heap Fetches: 0
+                                        ->  Index Scan using idx_customer_first_name_customer_id on customer c  (cost=0.28..0.55 rows=1 width=10) (actual time=0.013..0.013 rows=1 loops=5247)
+                                              Index Cond: ((first_name)::text = (a.first_name)::text)
+                                  ->  Index Scan using idx_rental_customer_id on rental r2  (cost=0.00..1.91 rows=27 width=6) (actual time=0.003..0.018 rows=27 loops=2871)
+                                        Index Cond: (customer_id = c.customer_id)
+                            ->  Hash  (cost=17.39..17.39 rows=5 width=6) (actual time=0.007..0.007 rows=5 loops=998)
+                                  Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                                  ->  Bitmap Heap Scan on inventory i1_1  (cost=4.04..17.39 rows=5 width=6) (actual time=0.003..0.004 rows=5 loops=998)
+                                        Recheck Cond: (film_id = f.film_id)
+                                        Heap Blocks: exact=976
+                                        ->  Bitmap Index Scan on idx_inventory_film_id  (cost=0.00..4.04 rows=5 width=0) (actual time=0.002..0.002 rows=5 loops=998)
+                                              Index Cond: (film_id = f.film_id)
+                      ->  Index Scan using film_film_id_idx on film f1  (cost=0.00..8.02 rows=1 width=4) (actual time=0.003..0.003 rows=0 loops=65)
+                            Index Cond: (film_id = f.film_id)
+Planning Time: 15.196 ms
+Execution Time: 316.140 ms
