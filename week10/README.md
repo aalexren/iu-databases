@@ -533,3 +533,5 @@ lab11=*# COMMIT;
 COMMIT
 lab11=#
 ```
+
+In this case even we commit changes in transaction, the another transaction won't see it before the end of transaction.
