@@ -81,7 +81,7 @@ CREATE TABLE IF NOT EXISTS ledger
 	to_uid INT NOT NULL,
 	fee DECIMAL NOT NULL,
 	amount DECIMAL NOT NULL,
-	transaction_date DATE NOT NULL,
+	transaction_date TIMESTAMPTZ NOT NULL,
 	
 	PRIMARY KEY (uid),
 	FOREIGN KEY (from_uid) REFERENCES account(uid),
