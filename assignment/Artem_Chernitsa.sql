@@ -1,12 +1,17 @@
 -- IMPORTANT INDEX
 CREATE INDEX IF NOT EXISTS index_rental_rental_id_staff_id_last_update
 ON rental 
-USING btree(last_update, rental_id, customer_id, staff_id);
+USING btree(last_update, rental_id, customer_id, staff_id) WITH (fillfactor = 25);
 
 -- IMPORTANT INDEX FOR BIGGER DATA
 CREATE INDEX IF NOT EXISTS index_customer_customer_id
 ON customer
 USING hash(customer_id) WHERE active=1;
+
+-- IMPORTANT INDEX
+CREATE INDEX IF NOT EXISTS index_payment_all
+ON payment
+USING btree(rental_id) INCLUDE (payment_date, payment_id);
 
 -- IMPORTANT INDEX
 CREATE INDEX IF NOT EXISTS index_film_all_2
