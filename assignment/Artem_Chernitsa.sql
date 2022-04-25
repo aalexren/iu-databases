@@ -9,12 +9,8 @@ ON customer
 USING hash(customer_id) WHERE active=1;
 
 -- IMPORTANT INDEX
-CREATE INDEX IF NOT EXISTS index_film_all
-ON film USING btree(rental_rate ASC NULLS FIRST, release_year ASC NULLS FIRST) INCLUDE (title);
-
--- IMPORTANT INDEX
 CREATE INDEX IF NOT EXISTS index_film_all_2
-ON film USING btree(release_year ASC NULLS FIRST, rental_rate ASC NULLS FIRST) INCLUDE (title);
+ON film USING btree(release_year, rental_rate);
 
 -- IMPORTANT INDEX FOR BIGGER DATA
 CREATE INDEX IF NOT EXISTS index_film_film_id 

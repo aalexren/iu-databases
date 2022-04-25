@@ -1,12 +1,7 @@
 -- IMPORTANT INDEX
-DROP INDEX IF EXISTS index_film_all;
-CREATE INDEX IF NOT EXISTS index_film_all
-ON film USING btree(rental_rate ASC NULLS FIRST, release_year ASC NULLS FIRST) INCLUDE (title);
-
--- IMPORTANT INDEX
 DROP INDEX IF EXISTS index_film_all_2;
 CREATE INDEX IF NOT EXISTS index_film_all_2
-ON film USING btree(release_year ASC NULLS FIRST, rental_rate ASC NULLS FIRST) INCLUDE (title);
+ON film USING btree(release_year, rental_rate);
 
 EXPLAIN ANALYZE --, COSTS, VERBOSE, BUFFERS, FORMAT JSON)
 SELECT title, release_year
