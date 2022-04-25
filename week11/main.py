@@ -49,8 +49,8 @@ def ex2():
 
 def ex3():
     print('Delete single Manhattan located restaurant')
-    cursor = db.restaurants.find_one({'borough':'Manhattan'})
-    print(cursor)
+    # cursor = db.restaurants.find_one({'borough':'Manhattan'})
+    # print(cursor)
     result = db.restaurants.delete_one({'borough':'Manhattan'})
     print(result.deleted_count)
 
@@ -59,7 +59,22 @@ def ex3():
     print(result.deleted_count)
 
 def ex4():
-    pass
+    print('Query all restaurants on Rogers Avenue street and update them')
+    cursor = db.restaurants.find({'address.street':'Rogers Avenue'})
+    
+    for _ in cursor:
+        t = sum([1 for v in _['grades'] if 'C' in v['grade']])
+        if t > 1:
+            print(f'Deleted:\n{_}')
+            result = db.restaurants.delete_one({'_id':_['_id']})
+            print(result.deleted_count)
+        elif t > 0:
+            grade = {
+                        'date': datetime.datetime.strptime('25/04/2022', "%d/%m/%Y").timestamp(), 'grade':'C', 'score':'10'
+                    }
+            result = db.restaurants.update_one(_, {'$push': {'grades': grade}})
+            print(f"Inserted:\n{result.raw_result}, {result.modified_count}")
+            print(db.restaurants.find_one({'_id':_['_id']}))
 
 if __name__ == '__main__':
     ex1()
