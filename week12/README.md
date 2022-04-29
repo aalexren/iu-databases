@@ -3,7 +3,8 @@ Artem Chernitsa – B20-02
 
 # CREATE AND MAKE RELATIONS
 ![](task_1.png)  
-`CREATE
+```
+CREATE
 (knu:Fighter{name: 'Khabib Nurmagomedov', weight: 155}),
 (rda:Fighter{name: 'Rafael Dos Anjos', weight: 155}),
 (nma:Fighter{name: 'Neil Magny', weight: 170}),
@@ -27,7 +28,8 @@ Artem Chernitsa – B20-02
 (kga)-[:beats]->(mbi),
 (mbi)-[:beats]->(mha),
 (mbi)-[:beats]->(kga),
-(mha)-[:beats]->(jjo)`
+(mha)-[:beats]->(jjo)
+```
 
 
 ## Subtask 1
