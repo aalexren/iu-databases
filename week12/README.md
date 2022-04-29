@@ -52,7 +52,8 @@ RETURN f, t`
 RETURN b`
 
 ## Subtask 4
-![](subtask_4.png)  
+![](subtask_4_1.png)
+![](subtask_4_2.png)  
 `MATCH (t)-[b:beats*1..]->(f)
 WITH COUNT(b) AS bc, t, f
 RETURN f`  
